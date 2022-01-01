@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.283 2021/12/19 22:13:55 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.285 2022/01/01 04:18:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -450,7 +450,7 @@ identity_permitted(Identity *id, SocketEntry *e, char *user,
 	 * request (i.e. no 'user' supplied), then only permit the key if
 	 * there is a permission that would allow it to be used at another
 	 * destination. This hides keys that are allowed to be used to
-	 * authenicate *to* a host but not permitted for *use* beyond it.
+	 * authenticate *to* a host but not permitted for *use* beyond it.
 	 */
 	hks = &e->session_ids[e->nsession_ids - 1];
 	if (hks->forwarded && user == NULL &&
@@ -1561,6 +1561,7 @@ process_extension(SocketEntry *e)
 		success = process_ext_session_bind(e);
 	else
 		debug_f("unsupported extension \"%s\"", name);
+	free(name);
 send:
 	send_status(e, success);
 }
