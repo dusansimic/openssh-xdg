@@ -57,7 +57,7 @@
  * The directory in user's home directory in which the files reside. The
  * directory should be world-readable (though not all files are).
  */
-#define _PATH_SSH_USER_DIR		".ssh"
+#define _PATH_SSH_USER_DIR		".config/ssh"
 
 /*
  * Per-user file containing host keys of known hosts.  This file need not be
