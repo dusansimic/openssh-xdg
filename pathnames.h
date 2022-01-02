@@ -87,21 +87,21 @@ char* path_get_user_config_file(enum config_file file);
  * readable by anyone except the user him/herself, though this does not
  * contain anything particularly secret.
  */
-#define _PATH_SSH_USER_HOSTFILE		"~/" _PATH_SSH_CACHE_DIR "/known_hosts"
+//#define _PATH_SSH_USER_HOSTFILE		"~/" _PATH_SSH_CACHE_DIR "/known_hosts"
 /* backward compat for protocol 2 */
-#define _PATH_SSH_USER_HOSTFILE2	"~/" _PATH_SSH_CACHE_DIR "/known_hosts2"
+//#define _PATH_SSH_USER_HOSTFILE2	"~/" _PATH_SSH_CACHE_DIR "/known_hosts2"
 
 /*
  * Name of the default file containing client-side authentication key. This
  * file should only be readable by the user him/herself.
  */
-#define _PATH_SSH_CLIENT_ID_DSA		_PATH_SSH_USER_DIR "/id_dsa"
-#define _PATH_SSH_CLIENT_ID_ECDSA	_PATH_SSH_USER_DIR "/id_ecdsa"
-#define _PATH_SSH_CLIENT_ID_RSA		_PATH_SSH_USER_DIR "/id_rsa"
-#define _PATH_SSH_CLIENT_ID_ED25519	_PATH_SSH_USER_DIR "/id_ed25519"
-#define _PATH_SSH_CLIENT_ID_XMSS	_PATH_SSH_USER_DIR "/id_xmss"
-#define _PATH_SSH_CLIENT_ID_ECDSA_SK	_PATH_SSH_USER_DIR "/id_ecdsa_sk"
-#define _PATH_SSH_CLIENT_ID_ED25519_SK	_PATH_SSH_USER_DIR "/id_ed25519_sk"
+//#define _PATH_SSH_CLIENT_ID_DSA		_PATH_SSH_USER_DIR "/id_dsa"
+//#define _PATH_SSH_CLIENT_ID_ECDSA	_PATH_SSH_USER_DIR "/id_ecdsa"
+//#define _PATH_SSH_CLIENT_ID_RSA		_PATH_SSH_USER_DIR "/id_rsa"
+//#define _PATH_SSH_CLIENT_ID_ED25519	_PATH_SSH_USER_DIR "/id_ed25519"
+//#define _PATH_SSH_CLIENT_ID_XMSS	_PATH_SSH_USER_DIR "/id_xmss"
+//#define _PATH_SSH_CLIENT_ID_ECDSA_SK	_PATH_SSH_USER_DIR "/id_ecdsa_sk"
+//#define _PATH_SSH_CLIENT_ID_ED25519_SK	_PATH_SSH_USER_DIR "/id_ed25519_sk"
 
 /*
  * Configuration file in user's home directory.  This file need not be
@@ -109,7 +109,7 @@ char* path_get_user_config_file(enum config_file file);
  * particularly secret.  If the user's home directory resides on an NFS
  * volume where root is mapped to nobody, this may need to be world-readable.
  */
-#define _PATH_SSH_USER_CONFFILE		_PATH_SSH_USER_DIR "/config"
+//#define _PATH_SSH_USER_CONFFILE		_PATH_SSH_USER_DIR "/config"
 
 /*
  * File containing a list of those rsa keys that permit logging in as this

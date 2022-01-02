@@ -43,6 +43,9 @@ char* path_get_user_client_id_file(enum config_file file) {
                         return PATH_SSH_USER_HOSTFILE2;
                 case PATH_CONFIG_FILE_SSH_USER_CONFFILE:
                         return PATH_SSH_USER_CONFFILE;
+
+                case PATH_CONFIG_FILE_SSH_USER_DIR:
+                        return "";
                 default:
                         return NULL;
         }
@@ -58,10 +61,12 @@ char* path_get_xdg_dir(enum config_file file) {
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519:
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
+
+                case PATH_CONFIG_FILE_SSH_USER_DIR:
                         return xdgConfigHome(0);
                 case PATH_CONFIG_FILE_SSH_USER_HOSTFILE:
                 case PATH_CONFIG_FILE_SSH_USER_HOSTFILE2:
-                        return xdgDataHome(0);
+                        return xdgCacheHome(0);
                 default:
                         return NULL;
         }
@@ -72,13 +77,19 @@ char* path_get_xdg_dir(enum config_file file) {
 char* path_get_user_config_file(enum config_file file) {
         if(file == PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME) {
                 return xdgConfigHome(0);
+        } else if(file == PATH_CONFIG_FILE_SSH_USER_DIR){
+                char* xdg_dir = xdgConfigHome(0);
+                char* temp_path = malloc(strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2);
+                snprintf(temp_path, strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);
+                free(xdg_dir);
+                return temp_path;
         }
 
         char* xdg_dir = path_get_xdg_dir(file);
         char* basename = path_get_user_client_id_file(file);
 
         if (!xdg_dir || !basename) {
-                fatal_f("path_get_user_config_file: invalid file %d", file);
+                fatal_f("invalid file %d", file);
         }
 
         // Lengths of the individual components plus two forward slashes and a null terminator

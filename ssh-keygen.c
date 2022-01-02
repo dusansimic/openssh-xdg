@@ -285,15 +285,15 @@ ask_filename(struct passwd *pw, const char *prompt)
 			break;
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:
-			name = _PATH_SSH_CLIENT_ID_ED25519;
+			name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
 			break;
 		case KEY_ED25519_SK:
 		case KEY_ED25519_SK_CERT:
-			name = _PATH_SSH_CLIENT_ID_ED25519_SK;
+			name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
 			break;
 		case KEY_XMSS:
 		case KEY_XMSS_CERT:
-			name = _PATH_SSH_CLIENT_ID_XMSS;
+			name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 			break;
 		default:
 			fatal("bad key type");
@@ -1300,7 +1300,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 	struct stat sb;
 
 	if (!have_identity) {
-		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
+		cp = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE);
 		if (strlcpy(identity_file, cp, sizeof(identity_file)) >=
 		    sizeof(identity_file))
 			fatal("Specified known hosts path too long");
