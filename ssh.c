@@ -547,9 +547,6 @@ static void
 process_config_files(const char *host_name, struct passwd *pw, int final_pass,
     int *want_final_pass)
 {
-	char buf[PATH_MAX];
-	int r;
-
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
 		    !read_config_file(config, pw, host, host_name, &options,
@@ -558,12 +555,12 @@ process_config_files(const char *host_name, struct passwd *pw, int final_pass,
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
-		r = snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir,
-		    _PATH_SSH_USER_CONFFILE);
-		if (r > 0 && (size_t)r < sizeof(buf))
-			(void)read_config_file(buf, pw, host, host_name,
+    char* ssh_user_conffile = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_USER_CONFFILE);
+		if (ssh_user_conffile != NULL)
+			(void)read_config_file(ssh_user_conffile, pw, host, host_name,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
 			    (final_pass ? SSHCONF_FINAL : 0), want_final_pass);
+    free(ssh_user_conffile);
 
 		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,

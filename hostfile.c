@@ -482,9 +482,10 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 	if ((p = strrchr(filename, '/')) == NULL)
 		return;
 	len = p - filename;
-	dotsshdir = tilde_expand_filename("~/" _PATH_SSH_USER_DIR, getuid());
-	if (strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0)
+	dotsshdir = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_USER_DIR);
+	if (strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0) {
 		goto out; /* not ~/.ssh prefixed */
+	}
 	if (stat(dotsshdir, &st) == 0)
 		goto out; /* dir already exists */
 	else if (errno != ENOENT)
@@ -493,6 +494,17 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 #ifdef WITH_SELINUX
 		ssh_selinux_setfscreatecon(dotsshdir);
 #endif
+		char* xdg_parent_dir = path_get_user_config_file(PATH_NAME_CONFIG_FILE_BARE_XDG_CONFIG_HOME);
+		if(stat(xdg_parent_dir, &st) == 0) { 
+			// dir exists 
+		}  else if (errno != ENOENT) 
+			error("Could not stat %s: %s", xdg_parent_dir, strerror(errno));
+		else {
+			if(mkdir(xdg_parent_dir, 0700) == -1)
+				error("Could not create directory '%.200s' (%s).",
+						xdg_parent_dir, strerror(errno));
+		}
+
 		if (mkdir(dotsshdir, 0700) == -1)
 			error("Could not create directory '%.200s' (%s).",
 			    dotsshdir, strerror(errno));
@@ -560,7 +572,7 @@ add_host_to_hostfile(const char *filename, const char *host,
 	if (key == NULL)
 		return 1;	/* XXX ? */
 	hostfile_create_user_ssh_dir(filename, 0);
-  hostfile_create_user_ssh_cache_dir(filename, 0);
+  	hostfile_create_user_ssh_cache_dir(filename, 0);
 	f = fopen(filename, "a");
 	if (!f)
 		return 0;

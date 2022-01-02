@@ -407,6 +407,7 @@ AC_ARG_WITH([Werror],
 )
 
 AC_CHECK_HEADERS([ \
+  basedir.h \
 	blf.h \
 	bstring.h \
 	crypt.h \
@@ -728,7 +729,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
-	# proc_pidinfo()-based closefrom() replacement.
+  	# proc_pidinfo()-based closefrom() replacement.
 	AC_CHECK_HEADERS([libproc.h])
 	AC_CHECK_FUNCS([proc_pidinfo])
 	;;
@@ -3247,6 +3248,11 @@ AC_CHECK_FUNCS([ \
 	arc4random_stir \
 	arc4random_uniform \
 ])
+
+#saved_LIBS="$LIBS"
+#AC_DEFINE([HAVE_LIBXDG_BASEDIR], [], [Do we have libxdg-basedir?])
+AC_CHECK_LIB([xdg-basedir], [xdgInitHandle], [LIBS="$LIBS -lxdg-basedir "])
+#LIBS="$saved_LIBS"
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB([iaf], [ia_openinfo], [

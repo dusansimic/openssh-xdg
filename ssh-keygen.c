@@ -261,18 +261,18 @@ ask_filename(struct passwd *pw, const char *prompt)
 	char buf[1024];
 	char *name = NULL;
 
-	if (key_type_name == NULL)
-		name = _PATH_SSH_CLIENT_ID_RSA;
-	else {
+	if (key_type_name == NULL) {
+    name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_RSA);
+  }	else {
 		switch (sshkey_type_from_name(key_type_name)) {
 		case KEY_DSA_CERT:
 		case KEY_DSA:
-			name = _PATH_SSH_CLIENT_ID_DSA;
+      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_DSA);
 			break;
 #ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
-			name = _PATH_SSH_CLIENT_ID_ECDSA;
+      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
 			break;
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ECDSA_SK:
@@ -281,7 +281,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 #endif
 		case KEY_RSA_CERT:
 		case KEY_RSA:
-			name = _PATH_SSH_CLIENT_ID_RSA;
+      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_RSA);
 			break;
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:
@@ -300,7 +300,8 @@ ask_filename(struct passwd *pw, const char *prompt)
 		}
 	}
 	snprintf(identity_file, sizeof(identity_file),
-	    "%s/%s", pw->pw_dir, name);
+	    "%s", name);
+  free(name);
 	printf("%s (%s): ", prompt, identity_file);
 	fflush(stdout);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)

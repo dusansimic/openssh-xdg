@@ -60,6 +60,27 @@
 #define _PATH_SSH_USER_DIR		".config/ssh"
 #define _PATH_SSH_CACHE_DIR   ".cache/ssh"
 
+enum config_file {
+        PATH_NAME_CONFIG_FILE_SSH_USER_HOSTFILE,
+        PATH_NAME_CONFIG_FILE_SSH_USER_HOSTFILE2,
+
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_DSA,
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_ECDSA,
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_RSA,
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_ED25519,
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_XMSS,
+        PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK,
+
+        PATH_NAME_CONFIG_FILE_SSH_USER_CONFFILE,
+        PATH_NAME_CONFIG_FILE_SSH_USER_PERMITTED_KEYS,
+        PATH_NAME_CONFIG_FILE_SSH_USER_RC,
+        PATH_NAME_CONFIG_FILE_SSH_USER_DIR,
+        PATH_NAME_CONFIG_FILE_BARE_XDG_CONFIG_HOME
+};
+
+
+char* path_get_user_config_file(enum config_file file);
+
 /*
  * Per-user file containing host keys of known hosts.  This file need not be
  * readable by anyone except the user him/herself, though this does not
