@@ -56,9 +56,6 @@ char* path_get_user_client_id_file(enum config_file file) {
 
                 case PATH_CONFIG_FILE_SSH_USER_RC:
                         return PATH_SSH_USER_RC;
-
-                case PATH_CONFIG_FILE_SSH_USER_DIR:
-                        return "";
                 default:
                         return NULL;
         }
@@ -79,8 +76,6 @@ char* path_get_xdg_dir(enum config_file file) {
                 case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
 
                 case PATH_CONFIG_FILE_SSH_USER_RC:
-
-                case PATH_CONFIG_FILE_SSH_USER_DIR:
                         return xdgConfigHome(0);
                 case PATH_CONFIG_FILE_SSH_USER_HOSTFILE:
                 case PATH_CONFIG_FILE_SSH_USER_HOSTFILE2:
@@ -95,7 +90,15 @@ char* path_get_xdg_dir(enum config_file file) {
 char* path_get_user_config_file(enum config_file file) {
         if(file == PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME) {
                 return xdgConfigHome(0);
-        } else if(file == PATH_CONFIG_FILE_SSH_USER_DIR){
+        } else if(file == PATH_CONFIG_FILE_BARE_XDG_CACHE_HOME) {
+                return xdgCacheHome(0);
+        } else if(file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR){
+                char* xdg_dir = xdgCacheHome(0);
+                char* temp_path = malloc(strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2);
+                snprintf(temp_path, strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);
+                free(xdg_dir);
+                return temp_path;
+        } else if(file == PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR){
                 char* xdg_dir = xdgConfigHome(0);
                 char* temp_path = malloc(strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2);
                 snprintf(temp_path, strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);

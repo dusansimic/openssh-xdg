@@ -1885,9 +1885,11 @@ parse_pubkey_algos:
 				goto out;
 			}
 			if (!path_absolute(arg) && *arg != '~') {
+				char* user_dir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR);
 				xasprintf(&arg2, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
-				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
+				    user_dir : SSHDIR, arg);
+				free(user_dir);
 			} else
 				arg2 = xstrdup(arg);
 			memset(&gl, 0, sizeof(gl));

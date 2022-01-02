@@ -482,7 +482,7 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 	if ((p = strrchr(filename, '/')) == NULL)
 		return;
 	len = p - filename;
-	dotsshdir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_DIR);
+	dotsshdir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR);
 	if (strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0) {
 		goto out; /* not ~/.ssh prefixed */
 	}
@@ -532,7 +532,7 @@ hostfile_create_user_ssh_cache_dir(const char *filename, int notify)
 	if ((p = strrchr(filename, '/')) == NULL)
 		return;
 	len = p - filename;
-	dotsshdir = tilde_expand_filename("~/" _PATH_SSH_CACHE_DIR, getuid());
+	dotsshdir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CACHE_DIR);
 	if (strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0)
 		goto out; /* not ~/.ssh prefixed */
 	if (stat(dotsshdir, &st) == 0)

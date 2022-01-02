@@ -1117,10 +1117,11 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		}
 	}
 
-	/* read $HOME/.ssh/environment. */
+	/* read $XDG_CONFIG_HOME/ssh/environment. */
 	if (options.permit_user_env) {
-		snprintf(buf, sizeof buf, "%.200s/%s/environment",
-		    pw->pw_dir, _PATH_SSH_USER_DIR);
+		char* ssh_user_dir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR);
+		snprintf(buf, sizeof buf, "%.200s/environment", ssh_user_dir);
+		free(ssh_user_dir);
 		read_environment_file(&env, &envsize, buf,
 		    options.permit_user_env_allowlist);
 	}

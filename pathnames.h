@@ -53,13 +53,6 @@
  */
 #define _PATH_SSH_DAEMON_PID_FILE	_PATH_SSH_PIDDIR "/sshd.pid"
 
-/*
- * The directory in user's home directory in which the files reside. The
- * directory should be world-readable (though not all files are).
- */
-#define _PATH_SSH_USER_DIR		".config/ssh"
-#define _PATH_SSH_CACHE_DIR   ".cache/ssh"
-
 enum config_file {
         PATH_CONFIG_FILE_SSH_USER_HOSTFILE,
         PATH_CONFIG_FILE_SSH_USER_HOSTFILE2,
@@ -77,62 +70,15 @@ enum config_file {
 
         PATH_CONFIG_FILE_SSH_USER_CONFFILE,
         PATH_CONFIG_FILE_SSH_USER_RC,
-        PATH_CONFIG_FILE_SSH_USER_DIR,
-        PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME
+        PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR,
+        PATH_CONFIG_FILE_SSH_USER_CACHE_DIR,
+        PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME,
+        PATH_CONFIG_FILE_BARE_XDG_CACHE_HOME
 };
 
 
 char* path_get_user_config_file(enum config_file file);
 
-/*
- * Per-user file containing host keys of known hosts.  This file need not be
- * readable by anyone except the user him/herself, though this does not
- * contain anything particularly secret.
- */
-//#define _PATH_SSH_USER_HOSTFILE		"~/" _PATH_SSH_CACHE_DIR "/known_hosts"
-/* backward compat for protocol 2 */
-//#define _PATH_SSH_USER_HOSTFILE2	"~/" _PATH_SSH_CACHE_DIR "/known_hosts2"
-
-/*
- * Name of the default file containing client-side authentication key. This
- * file should only be readable by the user him/herself.
- */
-//#define _PATH_SSH_CLIENT_ID_DSA		_PATH_SSH_USER_DIR "/id_dsa"
-//#define _PATH_SSH_CLIENT_ID_ECDSA	_PATH_SSH_USER_DIR "/id_ecdsa"
-//#define _PATH_SSH_CLIENT_ID_RSA		_PATH_SSH_USER_DIR "/id_rsa"
-//#define _PATH_SSH_CLIENT_ID_ED25519	_PATH_SSH_USER_DIR "/id_ed25519"
-//#define _PATH_SSH_CLIENT_ID_XMSS	_PATH_SSH_USER_DIR "/id_xmss"
-//#define _PATH_SSH_CLIENT_ID_ECDSA_SK	_PATH_SSH_USER_DIR "/id_ecdsa_sk"
-//#define _PATH_SSH_CLIENT_ID_ED25519_SK	_PATH_SSH_USER_DIR "/id_ed25519_sk"
-
-/*
- * Configuration file in user's home directory.  This file need not be
- * readable by anyone but the user him/herself, but does not contain anything
- * particularly secret.  If the user's home directory resides on an NFS
- * volume where root is mapped to nobody, this may need to be world-readable.
- */
-//#define _PATH_SSH_USER_CONFFILE		_PATH_SSH_USER_DIR "/config"
-
-/*
- * File containing a list of those rsa keys that permit logging in as this
- * user.  This file need not be readable by anyone but the user him/herself,
- * but does not contain anything particularly secret.  If the user's home
- * directory resides on an NFS volume where root is mapped to nobody, this
- * may need to be world-readable.  (This file is read by the daemon which is
- * running as root.)
- */
-//#define _PATH_SSH_USER_PERMITTED_KEYS	_PATH_SSH_USER_DIR "/authorized_keys"
-
-/* backward compat for protocol v2 */
-//#define _PATH_SSH_USER_PERMITTED_KEYS2	_PATH_SSH_USER_DIR "/authorized_keys2"
-
-/*
- * Per-user and system-wide ssh "rc" files.  These files are executed with
- * /bin/sh before starting the shell or command if they exist.  They will be
- * passed "proto cookie" as arguments if X11 forwarding with spoofing is in
- * use.  xauth will be run if neither of these exists.
- */
-//#define _PATH_SSH_USER_RC		_PATH_SSH_USER_DIR "/rc"
 #define _PATH_SSH_SYSTEM_RC		SSHDIR "/sshrc"
 
 /*
