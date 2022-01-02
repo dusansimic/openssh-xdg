@@ -262,26 +262,26 @@ ask_filename(struct passwd *pw, const char *prompt)
 	char *name = NULL;
 
 	if (key_type_name == NULL) {
-    name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_RSA);
+    name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA);
   }	else {
 		switch (sshkey_type_from_name(key_type_name)) {
 		case KEY_DSA_CERT:
 		case KEY_DSA:
-      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_DSA);
+      name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA);
 			break;
 #ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
-      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
+      name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
 			break;
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ECDSA_SK:
-			name = _PATH_SSH_CLIENT_ID_ECDSA_SK;
+			name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
 			break;
 #endif
 		case KEY_RSA_CERT:
 		case KEY_RSA:
-      name = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_CLIENT_ID_RSA);
+      name = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA);
 			break;
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:

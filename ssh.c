@@ -555,7 +555,7 @@ process_config_files(const char *host_name, struct passwd *pw, int final_pass,
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
-    char* ssh_user_conffile = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_USER_CONFFILE);
+    char* ssh_user_conffile = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFFILE);
 		if (ssh_user_conffile != NULL)
 			(void)read_config_file(ssh_user_conffile, pw, host, host_name,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |

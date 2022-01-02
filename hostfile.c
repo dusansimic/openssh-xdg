@@ -482,7 +482,7 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 	if ((p = strrchr(filename, '/')) == NULL)
 		return;
 	len = p - filename;
-	dotsshdir = path_get_user_config_file(PATH_NAME_CONFIG_FILE_SSH_USER_DIR);
+	dotsshdir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_DIR);
 	if (strlen(dotsshdir) > len || strncmp(filename, dotsshdir, len) != 0) {
 		goto out; /* not ~/.ssh prefixed */
 	}
@@ -494,7 +494,7 @@ hostfile_create_user_ssh_dir(const char *filename, int notify)
 #ifdef WITH_SELINUX
 		ssh_selinux_setfscreatecon(dotsshdir);
 #endif
-		char* xdg_parent_dir = path_get_user_config_file(PATH_NAME_CONFIG_FILE_BARE_XDG_CONFIG_HOME);
+		char* xdg_parent_dir = path_get_user_config_file(PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME);
 		if(stat(xdg_parent_dir, &st) == 0) { 
 			// dir exists 
 		}  else if (errno != ENOENT) 
