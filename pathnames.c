@@ -20,6 +20,11 @@
 #define PATH_SSH_USER_HOSTFILE "known_hosts"
 #define PATH_SSH_USER_HOSTFILE2 "known_hosts2"
 
+#define PATH_SSH_USER_PERMITTED_KEYS "authorized_keys"
+#define PATH_SSH_USER_PERMITTED_KEYS2 "authorized_keys2"
+
+#define PATH_SSH_USER_RC "rc"
+
 char* path_get_user_client_id_file(enum config_file file) {
         switch (file) {
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA:
@@ -44,6 +49,14 @@ char* path_get_user_client_id_file(enum config_file file) {
                 case PATH_CONFIG_FILE_SSH_USER_CONFFILE:
                         return PATH_SSH_USER_CONFFILE;
 
+                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
+                        return PATH_SSH_USER_PERMITTED_KEYS;
+                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
+                        return PATH_SSH_USER_PERMITTED_KEYS2;
+
+                case PATH_CONFIG_FILE_SSH_USER_RC:
+                        return PATH_SSH_USER_RC;
+
                 case PATH_CONFIG_FILE_SSH_USER_DIR:
                         return "";
                 default:
@@ -61,6 +74,11 @@ char* path_get_xdg_dir(enum config_file file) {
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519:
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
+
+                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
+                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
+
+                case PATH_CONFIG_FILE_SSH_USER_RC:
 
                 case PATH_CONFIG_FILE_SSH_USER_DIR:
                         return xdgConfigHome(0);

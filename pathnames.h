@@ -72,8 +72,10 @@ enum config_file {
         PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS,
         PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK,
 
-        PATH_CONFIG_FILE_SSH_USER_CONFFILE,
         PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS,
+        PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2,
+
+        PATH_CONFIG_FILE_SSH_USER_CONFFILE,
         PATH_CONFIG_FILE_SSH_USER_RC,
         PATH_CONFIG_FILE_SSH_USER_DIR,
         PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME
@@ -119,10 +121,10 @@ char* path_get_user_config_file(enum config_file file);
  * may need to be world-readable.  (This file is read by the daemon which is
  * running as root.)
  */
-#define _PATH_SSH_USER_PERMITTED_KEYS	_PATH_SSH_USER_DIR "/authorized_keys"
+//#define _PATH_SSH_USER_PERMITTED_KEYS	_PATH_SSH_USER_DIR "/authorized_keys"
 
 /* backward compat for protocol v2 */
-#define _PATH_SSH_USER_PERMITTED_KEYS2	_PATH_SSH_USER_DIR "/authorized_keys2"
+//#define _PATH_SSH_USER_PERMITTED_KEYS2	_PATH_SSH_USER_DIR "/authorized_keys2"
 
 /*
  * Per-user and system-wide ssh "rc" files.  These files are executed with
@@ -130,7 +132,7 @@ char* path_get_user_config_file(enum config_file file);
  * passed "proto cookie" as arguments if X11 forwarding with spoofing is in
  * use.  xauth will be run if neither of these exists.
  */
-#define _PATH_SSH_USER_RC		_PATH_SSH_USER_DIR "/rc"
+//#define _PATH_SSH_USER_RC		_PATH_SSH_USER_DIR "/rc"
 #define _PATH_SSH_SYSTEM_RC		SSHDIR "/sshrc"
 
 /*

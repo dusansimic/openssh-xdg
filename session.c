@@ -1207,7 +1207,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 
 	do_xauth =
 	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
-	xasprintf(&user_rc, "%s/%s", s->pw->pw_dir, _PATH_SSH_USER_RC);
+	user_rc = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_RC);
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&
