@@ -118,11 +118,11 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <linux/prctl.h>
 ])
 
-xdg_dirs=yes
+xdg_dirs=no
 AC_ARG_WITH([xdg_dirs],
-  [ --without-xdg-dirs     dont use the xdg specification for storing config files ],
-  [  if test "x$withval" = "xno" ; then
-        xdg_dirs=no
+  [ --with-xdg-dirs     use the xdg specification for storing config files ],
+  [  if test "x$withval" = "xyes" ; then
+        xdg_dirs=yes
   fi ])
 
 openssl=yes
