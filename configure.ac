@@ -118,6 +118,13 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <linux/prctl.h>
 ])
 
+xdg_dirs=yes
+AC_ARG_WITH([xdg_dirs],
+  [ --without-xdg-dirs     dont use the xdg specification for storing config files ],
+  [  if test "x$withval" = "xno" ; then
+        xdg_dirs=no
+  fi ])
+
 openssl=yes
 AC_ARG_WITH([openssl],
 	[  --without-openssl       Disable use of OpenSSL; use only limited internal crypto **EXPERIMENTAL** ],
@@ -407,7 +414,6 @@ AC_ARG_WITH([Werror],
 )
 
 AC_CHECK_HEADERS([ \
-  basedir.h \
 	blf.h \
 	bstring.h \
 	crypt.h \
@@ -3249,10 +3255,20 @@ AC_CHECK_FUNCS([ \
 	arc4random_uniform \
 ])
 
-#saved_LIBS="$LIBS"
-#AC_DEFINE([HAVE_LIBXDG_BASEDIR], [], [Do we have libxdg-basedir?])
-AC_CHECK_LIB([xdg-basedir], [xdgInitHandle], [LIBS="$LIBS -lxdg-basedir "])
-#LIBS="$saved_LIBS"
+if test "x$xdg_dirs" = "xyes"; then
+        AC_MSG_CHECKING([whether to use XDG dirs])
+        AC_CHECK_HEADER([basedir.h], [],
+                [
+                        AC_DEFINE([USE_XDG_DIRS], [1],
+                            [Use XDG directories])
+                ], [
+                        AC_DEFINE([USE_XDG_DIRS], [],
+                            [Do not use XDG directories])
+                ], [
+                        AC_MSG_ERROR([missing xdg/BaseDirectory.h])
+                ])
+        AC_CHECK_LIB([xdg-basedir], [xdgInitHandle], [LIBS="$LIBS -lxdg-basedir "])
+fi
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB([iaf], [ia_openinfo], [
@@ -5589,6 +5605,7 @@ echo "              Random number source: $RAND_MSG"
 echo "             Privsep sandbox style: $SANDBOX_STYLE"
 echo "                   PKCS#11 support: $enable_pkcs11"
 echo "                  U2F/FIDO support: $enable_sk"
+echo "           XDG directories support: $xdg_dirs"
 
 echo ""
 

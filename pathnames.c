@@ -6,6 +6,7 @@
 #include<stdio.h>
 #include<basedir.h>
 #include<string.h>
+#include"xmalloc.h"
 
 #define PATH_SSH_USER_CONFFILE "config"
 
@@ -61,7 +62,7 @@ char* path_get_user_client_id_file(enum config_file file) {
         }
 }
 
-char* path_get_xdg_dir(enum config_file file) {
+const char* path_get_xdg_dir(enum config_file file) {
         switch (file) {
                 case PATH_CONFIG_FILE_SSH_USER_CONFFILE:
                 case PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA:
@@ -88,25 +89,26 @@ char* path_get_xdg_dir(enum config_file file) {
 
 #define PATH_SSH_XDG_CONFIG_DIR "ssh"
 char* path_get_user_config_file(enum config_file file) {
+        // XDG functions return a const char* but since we aren't passing it a buffer we can cast it to a char*
+        // since it just allocates when it is called.
         if(file == PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME) {
-                return xdgConfigHome(0);
+                return (char*) xdgConfigHome(0);
         } else if(file == PATH_CONFIG_FILE_BARE_XDG_CACHE_HOME) {
-                return xdgCacheHome(0);
-        } else if(file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR){
-                char* xdg_dir = xdgCacheHome(0);
-                char* temp_path = malloc(strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2);
-                snprintf(temp_path, strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);
-                free(xdg_dir);
-                return temp_path;
-        } else if(file == PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR){
-                char* xdg_dir = xdgConfigHome(0);
-                char* temp_path = malloc(strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2);
-                snprintf(temp_path, strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);
+                return (char*) xdgCacheHome(0);
+        } else if(file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR || file == PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR) {
+
+                char* xdg_dir = (char*)((file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR) ? xdgCacheHome(0) : xdgConfigHome(0));
+
+                int len = strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2;
+                char* temp_path = xcalloc(len, sizeof(char));
+
+                snprintf(temp_path, len, "%s/%s", xdg_dir, PATH_SSH_XDG_CONFIG_DIR);
+
                 free(xdg_dir);
                 return temp_path;
         }
 
-        char* xdg_dir = path_get_xdg_dir(file);
+        char* xdg_dir = (char *) path_get_xdg_dir(file);
         char* basename = path_get_user_client_id_file(file);
 
         if (!xdg_dir || !basename) {
