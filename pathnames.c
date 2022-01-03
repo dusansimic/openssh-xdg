@@ -1,12 +1,14 @@
-#include"pathnames.h"
-#include"ssherr.h"
-#include"log.h"
 #include<stddef.h>
 #include<stdlib.h>
 #include<stdio.h>
 #include<basedir.h>
 #include<string.h>
+
+#include"pathnames.h"
+#include"ssherr.h"
 #include"xmalloc.h"
+#include"log.h"
+#include"config.h"
 
 #define PATH_SSH_USER_CONFFILE "config"
 
