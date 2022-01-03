@@ -3,7 +3,7 @@
 ## This is a modified version of openssh to make it compatible with the xdg directory standard
 
 #### Testing is appreciated 
-### ⚠️Currently requires the `--with-xdg-dirs` flag on configure to correctly link until I finish adding the ability to enable/disable xdg in the code.⚠️
+### ⚠️Currently requires the `--with-xdg-dirs` flag when running `./configure` to correctly link until I finish adding the ability to enable/disable xdg in the code.⚠️
 
 [![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:openssh)
