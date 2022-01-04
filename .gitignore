@@ -37,3 +37,4 @@ sshd
 tags
 debian
 !debian/DEBIAN/control
+openssh-xdg.deb
