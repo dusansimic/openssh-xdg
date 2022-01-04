@@ -1,0 +1,11 @@
+Package: openssh-xdg
+Version: 1.0
+Section: custom
+Priority: optional
+Architecture: amd64
+Essential: no
+Installed-Size: 1024
+Maintainer: darkforestsilence@gmail.com
+Description: openssh with xdg dir support
+Depends: libxdg-basedir1
+Conflicts: openssh-server, openssh-client
