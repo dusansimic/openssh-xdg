@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.442 2021/11/28 07:14:29 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.447 2022/01/05 21:54:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2513,7 +2513,8 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 
 static int
 sign_one(struct sshkey *signkey, const char *filename, int fd,
-    const char *sig_namespace, sshsig_signer *signer, void *signer_ctx)
+    const char *sig_namespace, const char *hashalg, sshsig_signer *signer,
+    void *signer_ctx)
 {
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR, wfd = -1, oerrno;
@@ -2543,7 +2544,7 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 			free(fp);
 		}
 	}
-	if ((r = sshsig_sign_fd(signkey, NULL, sk_provider, pin,
+	if ((r = sshsig_sign_fd(signkey, hashalg, sk_provider, pin,
 	    fd, sig_namespace, &sigbuf, signer, signer_ctx)) != 0) {
 		error_r(r, "Signing %s failed", filename);
 		goto out;
@@ -2604,12 +2605,57 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 }
 
 static int
-sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
+sig_process_opts(char * const *opts, size_t nopts, char **hashalgp,
+    uint64_t *verify_timep, int *print_pubkey)
+{
+	size_t i;
+	time_t now;
+
+	if (verify_timep != NULL)
+		*verify_timep = 0;
+	if (print_pubkey != NULL)
+		*print_pubkey = 0;
+	if (hashalgp != NULL)
+		*hashalgp = NULL;
+	for (i = 0; i < nopts; i++) {
+		if (hashalgp != NULL &&
+		    strncasecmp(opts[i], "hashalg=", 8) == 0) {
+			*hashalgp = xstrdup(opts[i] + 8);
+		} else if (verify_timep &&
+		    strncasecmp(opts[i], "verify-time=", 12) == 0) {
+			if (parse_absolute_time(opts[i] + 12,
+			    verify_timep) != 0 || *verify_timep == 0) {
+				error("Invalid \"verify-time\" option");
+				return SSH_ERR_INVALID_ARGUMENT;
+			}
+		} else if (print_pubkey &&
+		    strcasecmp(opts[i], "print-pubkey") == 0) {
+			*print_pubkey = 1;
+		} else {
+			error("Invalid option \"%s\"", opts[i]);
+			return SSH_ERR_INVALID_ARGUMENT;
+		}
+	}
+	if (verify_timep && *verify_timep == 0) {
+		if ((now = time(NULL)) < 0) {
+			error("Time is before epoch");
+			return SSH_ERR_INVALID_ARGUMENT;
+		}
+		*verify_timep = (uint64_t)now;
+	}
+	return 0;
+}
+
+
+static int
+sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv,
+    char * const *opts, size_t nopts)
 {
 	int i, fd = -1, r, ret = -1;
 	int agent_fd = -1;
 	struct sshkey *pubkey = NULL, *privkey = NULL, *signkey = NULL;
 	sshsig_signer *signer = NULL;
+	char *hashalg = NULL;
 
 	/* Check file arguments. */
 	for (i = 0; i < argc; i++) {
@@ -2618,6 +2664,9 @@ sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 		if (i > 0 || argc > 1)
 			fatal("Cannot sign mix of paths and standard input");
 	}
+
+	if (sig_process_opts(opts, nopts, &hashalg, NULL, NULL) != 0)
+		goto done; /* error already logged */
 
 	if ((r = sshkey_load_public(keypath, &pubkey, NULL)) != 0) {
 		error_r(r, "Couldn't load public key %s", keypath);
@@ -2645,7 +2694,7 @@ sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 
 	if (argc == 0) {
 		if ((r = sign_one(signkey, "(stdin)", STDIN_FILENO,
-		    sig_namespace, signer, &agent_fd)) != 0)
+		    sig_namespace, hashalg, signer, &agent_fd)) != 0)
 			goto done;
 	} else {
 		for (i = 0; i < argc; i++) {
@@ -2657,7 +2706,7 @@ sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv)
 				goto done;
 			}
 			if ((r = sign_one(signkey, argv[i], fd, sig_namespace,
-			    signer, &agent_fd)) != 0)
+			    hashalg, signer, &agent_fd)) != 0)
 				goto done;
 			if (fd != STDIN_FILENO)
 				close(fd);
@@ -2671,44 +2720,8 @@ done:
 		close(fd);
 	sshkey_free(pubkey);
 	sshkey_free(privkey);
+	free(hashalg);
 	return ret;
-}
-
-static int
-sig_process_opts(char * const *opts, size_t nopts, uint64_t *verify_timep,
-    int *print_pubkey)
-{
-	size_t i;
-	time_t now;
-
-	if (verify_timep != NULL)
-		*verify_timep = 0;
-	if (print_pubkey != NULL)
-		*print_pubkey = 0;
-	for (i = 0; i < nopts; i++) {
-		if (verify_timep &&
-		    strncasecmp(opts[i], "verify-time=", 12) == 0) {
-			if (parse_absolute_time(opts[i] + 12,
-			    verify_timep) != 0 || *verify_timep == 0) {
-				error("Invalid \"verify-time\" option");
-				return SSH_ERR_INVALID_ARGUMENT;
-			}
-		} else if (print_pubkey &&
-		    strcasecmp(opts[i], "print-pubkey") == 0) {
-			*print_pubkey = 1;
-		} else {
-			error("Invalid option \"%s\"", opts[i]);
-			return SSH_ERR_INVALID_ARGUMENT;
-		}
-	}
-	if (verify_timep && *verify_timep == 0) {
-		if ((now = time(NULL)) < 0) {
-			error("Time is before epoch");
-			return SSH_ERR_INVALID_ARGUMENT;
-		}
-		*verify_timep = (uint64_t)now;
-	}
-	return 0;
 }
 
 static int
@@ -2724,7 +2737,8 @@ sig_verify(const char *signature, const char *sig_namespace,
 	struct sshkey_sig_details *sig_details = NULL;
 	uint64_t verify_time = 0;
 
-	if (sig_process_opts(opts, nopts, &verify_time, &print_pubkey) != 0)
+	if (sig_process_opts(opts, nopts, NULL, &verify_time,
+	    &print_pubkey) != 0)
 		goto done; /* error already logged */
 
 	memset(&sig_details, 0, sizeof(sig_details));
@@ -2812,7 +2826,7 @@ sig_find_principals(const char *signature, const char *allowed_keys,
 	char *principals = NULL, *cp, *tmp;
 	uint64_t verify_time = 0;
 
-	if (sig_process_opts(opts, nopts, &verify_time, NULL) != 0)
+	if (sig_process_opts(opts, nopts, NULL, &verify_time, NULL) != 0)
 		goto done; /* error already logged */
 
 	if ((r = sshbuf_load_file(signature, &abuf)) != 0) {
@@ -2858,7 +2872,7 @@ sig_match_principals(const char *allowed_keys, char *principal,
 	char **principals = NULL;
 	size_t i, nprincipals = 0;
 
-	if ((r = sig_process_opts(opts, nopts, NULL, NULL)) != 0)
+	if ((r = sig_process_opts(opts, nopts, NULL, NULL, NULL)) != 0)
 		return r; /* error already logged */
 
 	if ((r = sshsig_match_principals(allowed_keys, principal,
@@ -3216,9 +3230,9 @@ usage(void)
 	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
 	    "       ssh-keygen -Y match-principals -I signer_identity -f allowed_signers_file\n"
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
-	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
+	    "       ssh-keygen -Y sign -f key_file -n namespace file [-O option] ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
-	    "                  -n namespace -s signature_file [-r revocation_file]\n");
+	    "                  -n namespace -s signature_file [-r krl_file] [-O option]\n");
 	exit(1);
 }
 
@@ -3510,6 +3524,7 @@ main(int argc, char **argv)
 			return sig_match_principals(identity_file, cert_key_id,
 			    opts, nopts);
 		} else if (strncmp(sign_op, "sign", 4) == 0) {
+			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
 				error("Too few arguments for sign: "
@@ -3522,7 +3537,7 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sig_sign(identity_file, cert_principals,
-			    argc, argv);
+			    argc, argv, opts, nopts);
 		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
 			if (ca_key_path == NULL) {
 				error("Too few arguments for check-novalidate: "
@@ -3532,6 +3547,7 @@ main(int argc, char **argv)
 			return sig_verify(ca_key_path, cert_principals,
 			    NULL, NULL, NULL, opts, nopts);
 		} else if (strncmp(sign_op, "verify", 6) == 0) {
+			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
 			    *cert_principals == '\0') {
 				error("Too few arguments for verify: "
@@ -3550,7 +3566,7 @@ main(int argc, char **argv)
 			}
 			if (cert_key_id == NULL) {
 				error("Too few arguments for verify: "
-				    "missing principal ID");
+				    "missing principal identity");
 				exit(1);
 			}
 			return sig_verify(ca_key_path, cert_principals,
