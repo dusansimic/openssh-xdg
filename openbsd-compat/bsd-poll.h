@@ -33,8 +33,7 @@
 #include <sys/types.h>
 #ifdef HAVE_POLL_H
 # include <poll.h>
-#endif
-#ifdef HAVE_SYS_POLL_H
+#elif HAVE_SYS_POLL_H
 # include <sys/poll.h>
 #endif
 
@@ -46,13 +45,13 @@ typedef struct pollfd {
 } pollfd_t;
 
 #define	POLLIN		0x0001
+#define	POLLPRI		0x0002
 #define	POLLOUT		0x0004
 #define	POLLERR		0x0008
 #define	POLLHUP		0x0010
 #define	POLLNVAL	0x0020
 #if 0
 /* the following are currently not implemented */
-#define	POLLPRI		0x0002
 #define	POLLRDNORM	0x0040
 #define POLLNORM	POLLRDNORM
 #define POLLWRNORM      POLLOUT

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.230 2022/01/06 22:03:59 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.232 2022/02/25 02:09:27 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -709,7 +709,6 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 int
 mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 {
-	char *username;
 	struct passwd *pwent;
 	int r, allowed = 0;
 	u_int i;
@@ -719,14 +718,12 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (authctxt->attempt++ != 0)
 		fatal_f("multiple attempts for getpwnam");
 
-	if ((r = sshbuf_get_cstring(m, &username, NULL)) != 0)
+	if ((r = sshbuf_get_cstring(m, &authctxt->user, NULL)) != 0)
 		fatal_fr(r, "parse");
 
-	pwent = getpwnamallow(ssh, username);
+	pwent = getpwnamallow(ssh, authctxt->user);
 
-	authctxt->user = xstrdup(username);
-	setproctitle("%s [priv]", pwent ? username : "unknown");
-	free(username);
+	setproctitle("%s [priv]", pwent ? authctxt->user : "unknown");
 
 	sshbuf_reset(m);
 
@@ -790,7 +787,7 @@ mm_answer_pwnamallow(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (auth2_setup_methods_lists(authctxt) != 0) {
 		/*
 		 * The monitor will continue long enough to let the child
-		 * run to it's packet_disconnect(), but it must not allow any
+		 * run to its packet_disconnect(), but it must not allow any
 		 * authentication to succeed.
 		 */
 		debug_f("no valid authentication method lists");

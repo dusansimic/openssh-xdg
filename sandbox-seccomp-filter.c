@@ -228,6 +228,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_getrandom
 	SC_ALLOW(__NR_getrandom),
 #endif
+#ifdef __NR_gettid
+	SC_ALLOW(__NR_gettid),
+#endif
 #ifdef __NR_gettimeofday
 	SC_ALLOW(__NR_gettimeofday),
 #endif
@@ -272,6 +275,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_ppoll
 	SC_ALLOW(__NR_ppoll),
+#endif
+#ifdef __NR_ppoll_time64
+	SC_ALLOW(__NR_ppoll_time64),
 #endif
 #ifdef __NR_poll
 	SC_ALLOW(__NR_poll),

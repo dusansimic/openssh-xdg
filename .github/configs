@@ -31,17 +31,20 @@ case "$config" in
 	LIBCRYPTOFLAGS="--without-openssl"
 	TEST_TARGET=t-exec
 	;;
+    cygwin-release)
+	CONFIGFLAGS="--with-libedit --with-xauth=/usr/bin/xauth --disable-strip --with-security-key-builtin"
+	;;
    clang-12-Werror)
 	CC="clang-12"
 	# clang's implicit-fallthrough requires that the code be annotated with
 	# __attribute__((fallthrough)) and does not understand /* FALLTHROUGH */
-	CFLAGS="-Wall -Wextra -O2 -Wno-error=implicit-fallthrough"
+	CFLAGS="-Wall -Wextra -O2 -Wno-error=implicit-fallthrough -Wno-error=unused-parameter"
 	CONFIGFLAGS="--with-pam --with-Werror"
 	;;
     gcc-11-Werror)
 	CC="gcc"
 	# -Wnoformat-truncation in gcc 7.3.1 20180130 fails on fmt_scaled
-	CFLAGS="-Wall -Wextra -Wno-format-truncation -O2 -Wimplicit-fallthrough=4"
+	CFLAGS="-Wall -Wextra -O2 -Wno-format-truncation -Wimplicit-fallthrough=4 -Wno-unused-parameter"
 	CONFIGFLAGS="--with-pam --with-Werror"
 	;;
     clang*|gcc*)
@@ -63,6 +66,12 @@ case "$config" in
 	;;
     libedit)
 	CONFIGFLAGS="--with-libedit"
+	;;
+    musl)
+	CC="musl-gcc"
+	CONFIGFLAGS="--without-zlib"
+	LIBCRYPTOFLAGS="--without-openssl"
+	TEST_TARGET="t-exec"
 	;;
     pam-krb5)
 	CONFIGFLAGS="--with-pam --with-kerberos5"
@@ -147,7 +156,9 @@ case "${TARGET_HOST}" in
 	LIBCRYPTOFLAGS="--without-openssl --disable-security-key"
 	# Minix does not have a loopback interface so we have to skip any
 	# test that relies on one.
-	T="addrmatch brokenkeys cfgmatch cfgmatchlisten cfgparse connect
+	# Also, Minix seems to be very limited in the number of select()
+	# calls that can be operating concurrently, so prune additional tests for that.
+	T="addrmatch agent-restrict brokenkeys cfgmatch cfgmatchlisten cfgparse connect
 	    connect-uri exit-status forward-control forwarding hostkey-agent
 	    key-options keyscan knownhosts-command login-timeout multiplex
 	    reconfigure reexec rekey scp scp-uri scp3 sftp sftp-badcmds

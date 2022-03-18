@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.364 2021/12/19 22:14:47 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.366 2022/02/08 08:59:12 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -943,7 +943,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
     int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
-	char *str, **charptr, *endofnumber, *keyword, *arg, *arg2, *p, ch;
+	char *str, **charptr, *endofnumber, *keyword, *arg, *arg2, *p;
 	char **cpptr, ***cppptr, fwdarg[256];
 	u_int i, *uintptr, uvalue, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
@@ -1584,9 +1584,8 @@ parse_pubkey_algos:
 		}
 		while ((arg = argv_next(&ac, &av)) != NULL) {
 			arg2 = xstrdup(arg);
-			ch = '\0';
-			p = hpdelim2(&arg, &ch);
-			if (p == NULL || ch == '/') {
+			p = hpdelim(&arg);
+			if (p == NULL) {
 				fatal("%s line %d: missing host in %s",
 				    filename, linenum,
 				    lookup_opcode_name(opcode));
@@ -2540,6 +2539,7 @@ fill_default_options(Options * options)
 		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA);
 		add_identity_file(options, NULL, path, 0);
 		free(path);
+
 #ifdef OPENSSL_HAS_ECC
 		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
 		add_identity_file(options, NULL, path, 0);
@@ -2549,6 +2549,7 @@ fill_default_options(Options * options)
 		    path, 0);
 		free(path);
 #endif
+
 		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
 		add_identity_file(options, NULL, 
 		    path, 0);

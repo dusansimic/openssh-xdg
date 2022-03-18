@@ -463,6 +463,7 @@ AC_CHECK_HEADERS([ \
 	sys/mman.h \
 	sys/label.h \
 	sys/ndir.h \
+	sys/param.h \
 	sys/poll.h \
 	sys/prctl.h \
 	sys/procctl.h \
@@ -976,6 +977,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-minix)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
+	# poll(2) seems to choke on /dev/null; "Bad file descriptor"
+	AC_DEFINE([BROKEN_POLL], [1],
+	    [System poll(2) implementation is broken])
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to acquire controlling tty])
@@ -1879,6 +1883,7 @@ AC_CHECK_FUNCS([ \
 	inet_ntoa \
 	inet_ntop \
 	innetgr \
+	killpg \
 	llabs \
 	localtime_r \
 	login_getcapbool \
@@ -2093,6 +2098,12 @@ AC_CHECK_DECLS([O_NONBLOCK], , ,
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+	])
+
+AC_CHECK_DECLS([ftruncate], , ,
+	[
+#include <sys/types.h>
+#include <unistd.h>
 	])
 
 AC_CHECK_DECLS([readv, writev], , , [
@@ -2646,23 +2657,17 @@ AC_ARG_WITH([ssl-dir],
 				./*|../*)	withval="`pwd`/$withval"
 			esac
 			if test -d "$withval/lib"; then
-				if test -n "${rpath_opt}"; then
-					LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
-				else
-					LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-				fi
+				libcrypto_path="${withval}/lib"
 			elif test -d "$withval/lib64"; then
-				if test -n "${rpath_opt}"; then
-					LDFLAGS="-L${withval}/lib64 ${rpath_opt}${withval}/lib64 ${LDFLAGS}"
-				else
-					LDFLAGS="-L${withval}/lib64 ${LDFLAGS}"
-				fi
+				libcrypto_path="$withval/lib64"
 			else
-				if test -n "${rpath_opt}"; then
-					LDFLAGS="-L${withval} ${rpath_opt}${withval} ${LDFLAGS}"
-				else
-					LDFLAGS="-L${withval} ${LDFLAGS}"
-				fi
+				# Built but not installed
+				libcrypto_path="${withval}"
+			fi
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${libcrypto_path} ${rpath_opt}${libcrypto_path} ${LDFLAGS}"
+			else
+				LDFLAGS="-L${libcrypto_path} ${LDFLAGS}"
 			fi
 			if test -d "$withval/include"; then
 				CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
@@ -3237,8 +3242,10 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 	saved_LIBS="$LIBS"
 	LIBS="$LIBS $LIBFIDO2"
 	AC_CHECK_FUNCS([ \
+		fido_assert_set_clientdata \
 		fido_cred_prot \
 		fido_cred_set_prot \
+		fido_cred_set_clientdata \
 		fido_dev_get_touch_begin \
 		fido_dev_get_touch_status \
 		fido_dev_supports_cred_prot \
@@ -3540,10 +3547,11 @@ AC_ARG_WITH([sandbox],
 	]
 )
 
-# Some platforms (seems to be the ones that have a kernel poll(2)-type
-# function with which they implement select(2)) use an extra file descriptor
-# when calling select(2), which means we can't use the rlimit sandbox.
-AC_MSG_CHECKING([if select works with descriptor rlimit])
+# POSIX specifies that poll() "shall fail with EINVAL if the nfds argument
+# is greater than OPEN_MAX".  On some platforms that includes implementions
+# ofselect in userspace on top of poll() so check both work with rlimit NOFILES
+# so check that both work before enabling the rlimit sandbox.
+AC_MSG_CHECKING([if select and/or poll works with descriptor rlimit])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <sys/types.h>
@@ -3554,6 +3562,11 @@ AC_RUN_IFELSE(
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#elif HAVE_SYS_POLL_H
+# include <sys/poll.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -3562,6 +3575,9 @@ AC_RUN_IFELSE(
 	int fd, r;
 	fd_set fds;
 	struct timeval tv;
+#ifdef HAVE_POLL
+	struct pollfd pfd;
+#endif
 
 	fd = open("/dev/null", O_RDONLY);
 	FD_ZERO(&fds);
@@ -3572,14 +3588,23 @@ AC_RUN_IFELSE(
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 	r = select(fd+1, &fds, NULL, NULL, &tv);
-	exit (r == -1 ? 1 : 0);
+	if (r == -1)
+		exit(1);
+#ifdef HAVE_POLL
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	r = poll(&pfd, 1, 1);
+	if (r == -1)
+		exit(2);
+#endif
+	exit(0);
 	]])],
 	[AC_MSG_RESULT([yes])
 	 select_works_with_rlimit=yes],
 	[AC_MSG_RESULT([no])
 	 select_works_with_rlimit=no],
-	[AC_MSG_WARN([cross compiling: assuming yes])
-	 select_works_with_rlimit=yes]
+	[AC_MSG_WARN([cross compiling: assuming no])
+	 select_works_with_rlimit=no]
 )
 
 AC_CHECK_MEMBERS([struct pollfd.fd], [], [], [[
