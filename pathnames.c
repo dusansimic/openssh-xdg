@@ -28,36 +28,38 @@
 
 #define PATH_SSH_USER_RC "rc"
 
+#define PATH_SSH_XDG_CONFIG_DIR "ssh"
+
 char* path_get_user_client_id_file(enum config_file file) {
         switch (file) {
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_RSA:
                         return PATH_SSH_CLIENT_ID_RSA;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_DSA:
                         return PATH_SSH_CLIENT_ID_DSA;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_ECDSA:
                         return PATH_SSH_CLIENT_ID_ECDSA;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS:     
+                case CONFIG_FILE_SSH_CLIENT_ID_XMSS:
                         return PATH_SSH_CLIENT_ID_XMSS;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519:
+                case CONFIG_FILE_SSH_CLIENT_ID_ED25519:
                         return PATH_SSH_CLIENT_ID_ED25519;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
+                case CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
                         return PATH_SSH_CLIENT_ID_ECDSA_SK;
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
+                case CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
                         return PATH_SSH_CLIENT_ID_ED25519_SK;
 
-                case PATH_CONFIG_FILE_SSH_USER_HOSTFILE:
+                case CONFIG_FILE_SSH_USER_HOSTFILE:
                         return PATH_SSH_USER_HOSTFILE;
-                case PATH_CONFIG_FILE_SSH_USER_HOSTFILE2:
+                case CONFIG_FILE_SSH_USER_HOSTFILE2:
                         return PATH_SSH_USER_HOSTFILE2;
-                case PATH_CONFIG_FILE_SSH_USER_CONFFILE:
+                case CONFIG_FILE_SSH_USER_CONFFILE:
                         return PATH_SSH_USER_CONFFILE;
 
-                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
+                case CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
                         return PATH_SSH_USER_PERMITTED_KEYS;
-                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
+                case CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
                         return PATH_SSH_USER_PERMITTED_KEYS2;
 
-                case PATH_CONFIG_FILE_SSH_USER_RC:
+                case CONFIG_FILE_SSH_USER_RC:
                         return PATH_SSH_USER_RC;
                 default:
                         return NULL;
@@ -66,22 +68,22 @@ char* path_get_user_client_id_file(enum config_file file) {
 
 const char* path_get_xdg_dir(enum config_file file) {
         switch (file) {
-                case PATH_CONFIG_FILE_SSH_USER_CONFFILE:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
-                case PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
+                case CONFIG_FILE_SSH_USER_CONFFILE:
+                case CONFIG_FILE_SSH_CLIENT_ID_RSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_DSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_ECDSA:
+                case CONFIG_FILE_SSH_CLIENT_ID_XMSS:
+                case CONFIG_FILE_SSH_CLIENT_ID_ED25519:
+                case CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK:
+                case CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK:
 
-                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
-                case PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
+                case CONFIG_FILE_SSH_USER_PERMITTED_KEYS:
+                case CONFIG_FILE_SSH_USER_PERMITTED_KEYS2:
 
-                case PATH_CONFIG_FILE_SSH_USER_RC:
+                case CONFIG_FILE_SSH_USER_RC:
                         return xdgConfigHome(0);
-                case PATH_CONFIG_FILE_SSH_USER_HOSTFILE:
-                case PATH_CONFIG_FILE_SSH_USER_HOSTFILE2:
+                case CONFIG_FILE_SSH_USER_HOSTFILE:
+                case CONFIG_FILE_SSH_USER_HOSTFILE2:
                         return xdgCacheHome(0);
                 default:
                         return NULL;
@@ -89,17 +91,16 @@ const char* path_get_xdg_dir(enum config_file file) {
 
 }
 
-#define PATH_SSH_XDG_CONFIG_DIR "ssh"
 char* path_get_user_config_file(enum config_file file) {
         // XDG functions return a const char* but since we aren't passing it a buffer we can cast it to a char*
         // since it just allocates when it is called.
-        if(file == PATH_CONFIG_FILE_BARE_XDG_CONFIG_HOME) {
+        if(file == CONFIG_FILE_BARE_XDG_CONFIG_HOME) {
                 return (char*) xdgConfigHome(0);
-        } else if(file == PATH_CONFIG_FILE_BARE_XDG_CACHE_HOME) {
+        } else if(file == CONFIG_FILE_BARE_XDG_CACHE_HOME) {
                 return (char*) xdgCacheHome(0);
-        } else if(file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR || file == PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR) {
+        } else if(file == CONFIG_FILE_SSH_USER_CACHE_DIR || file == CONFIG_FILE_SSH_USER_CONFIG_DIR) {
 
-                char* xdg_dir = (char*)((file == PATH_CONFIG_FILE_SSH_USER_CACHE_DIR) ? xdgCacheHome(0) : xdgConfigHome(0));
+                char* xdg_dir = (char*)((file == CONFIG_FILE_SSH_USER_CACHE_DIR) ? xdgCacheHome(0) : xdgConfigHome(0));
 
                 int len = strlen(xdg_dir) + strlen(PATH_SSH_XDG_CONFIG_DIR) + 2;
                 char* temp_path = xcalloc(len, sizeof(char));

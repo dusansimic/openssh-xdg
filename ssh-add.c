@@ -80,28 +80,28 @@ void init_default_files() {
 #ifdef WITH_OPENSSL
 #ifdef OPENSSL_HAS_ECC
 	default_files = xcalloc(8, sizeof(char *));
-	default_files[0] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA);
-	default_files[1] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA);
-	default_files[2] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
-	default_files[3] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
-	default_files[4] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
-	default_files[5] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
-	default_files[6] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS);
+	default_files[0] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_DSA);
+	default_files[1] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_RSA);
+	default_files[2] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
+	default_files[3] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
+	default_files[4] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519);
+	default_files[5] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
+	default_files[6] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 	default_files[7] = NULL;
 #else
 	default_files = xcalloc(6, sizeof(char *));
-	default_files[0] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_);
-	default_files[1] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA);
-	default_files[2] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
-	default_files[3] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
-	default_files[4] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS);
+	default_files[0] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_);
+	default_files[1] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_RSA);
+	default_files[2] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519);
+	default_files[3] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
+	default_files[4] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 	default_files[5] = NULL;
 #endif
 #else
 	default_files = xcalloc(4, sizeof(char *));
-	default_files[0] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
-	default_files[1] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
-	default_files[2] = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS);
+	default_files[0] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519);
+	default_files[1] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
+	default_files[2] = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 	default_files[3] = NULL;
 #endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 
@@ -964,8 +964,8 @@ main(int argc, char **argv)
 
 	if (hostkey_files == NULL) {
 		/* use defaults from readconf.c */
-		char* user_hostfile = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE);
-		char* user_hostfile2 = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE2);
+		char* user_hostfile = path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE);
+		char* user_hostfile2 = path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE2);
 		stringlist_append(&hostkey_files, user_hostfile);
 		stringlist_append(&hostkey_files, user_hostfile2);
 		stringlist_append(&hostkey_files, _PATH_SSH_SYSTEM_HOSTFILE);

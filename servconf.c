@@ -412,13 +412,13 @@ fill_default_server_options(ServerOptions *options)
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
 	if (options->num_authkeys_files == 0) {
-		char* permitted_keys = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS);
+		char* permitted_keys = path_get_user_config_file(CONFIG_FILE_SSH_USER_PERMITTED_KEYS);
 		opt_array_append("[default]", 0, "AuthorizedKeysFiles",
 		    &options->authorized_keys_files,
 		    &options->num_authkeys_files,
 		    permitted_keys);
 		free(permitted_keys);
-		permitted_keys = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_PERMITTED_KEYS2);
+		permitted_keys = path_get_user_config_file(CONFIG_FILE_SSH_USER_PERMITTED_KEYS2);
 		opt_array_append("[default]", 0, "AuthorizedKeysFiles",
 		    &options->authorized_keys_files,
 		    &options->num_authkeys_files,

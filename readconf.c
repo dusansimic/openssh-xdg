@@ -1884,7 +1884,7 @@ parse_pubkey_algos:
 				goto out;
 			}
 			if (!path_absolute(arg) && *arg != '~') {
-				char* user_dir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR);
+				char* user_dir = path_get_user_config_file(CONFIG_FILE_SSH_USER_CONFIG_DIR);
 				xasprintf(&arg2, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
 				    user_dir : SSHDIR, arg);
@@ -2533,33 +2533,33 @@ fill_default_options(Options * options)
 		options->add_keys_to_agent_lifespan = 0;
 	}
 	if (options->num_identity_files == 0) {
-		char* path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_RSA);
+		char* path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_RSA);
 		add_identity_file(options, NULL, path, 0);
 		free(path);
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_DSA);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_DSA);
 		add_identity_file(options, NULL, path, 0);
 		free(path);
 
 #ifdef OPENSSL_HAS_ECC
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
 		add_identity_file(options, NULL, path, 0);
 		free(path);
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
 		add_identity_file(options, NULL,
 		    path, 0);
 		free(path);
 #endif
 
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519);
 		add_identity_file(options, NULL, 
 		    path, 0);
 		free(path);
 
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
 		add_identity_file(options, NULL,
 		    path, 0);
 		free(path);
-		path = path_get_user_config_file(PATH_CONFIG_FILE_SSH_CLIENT_ID_XMSS);
+		path = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 		add_identity_file(options, NULL, path, 0);
 		free(path);
 	}
@@ -2573,7 +2573,7 @@ fill_default_options(Options * options)
 	}
 	if (options->update_hostkeys == -1) {
 		char* user_hostfile = path_get_user_config_file(
-			PATH_CONFIG_FILE_SSH_USER_HOSTFILE);
+			CONFIG_FILE_SSH_USER_HOSTFILE);
 		if (options->verify_host_key_dns <= 0 &&
 		    (options->num_user_hostfiles == 0 ||
 		    (options->num_user_hostfiles == 1 && strcmp(options->
@@ -2585,9 +2585,9 @@ fill_default_options(Options * options)
 	}
 	if (options->num_user_hostfiles == 0) {
 		options->user_hostfiles[options->num_user_hostfiles++] =
-			path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE);
+			path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE);
 		options->user_hostfiles[options->num_user_hostfiles++] =
-			path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE2);
+			path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE2);
 	}
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;

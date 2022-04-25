@@ -1119,7 +1119,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 
 	/* read $XDG_CONFIG_HOME/ssh/environment. */
 	if (options.permit_user_env) {
-		char* ssh_user_dir = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_CONFIG_DIR);
+		char* ssh_user_dir = path_get_user_config_file(CONFIG_FILE_SSH_USER_CONFIG_DIR);
 		snprintf(buf, sizeof buf, "%.200s/environment", ssh_user_dir);
 		free(ssh_user_dir);
 		read_environment_file(&env, &envsize, buf,
@@ -1208,7 +1208,7 @@ do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 
 	do_xauth =
 	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
-	user_rc = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_RC);
+	user_rc = path_get_user_config_file(CONFIG_FILE_SSH_USER_RC);
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&

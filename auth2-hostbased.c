@@ -219,14 +219,14 @@ hostbased_key_allowed(struct ssh *ssh, struct passwd *pw,
 		return 0;
 	}
 
-	char* user_hostfile = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE);
+	char* user_hostfile = path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE);
 	host_status = check_key_in_hostfiles(pw, key, lookup,
 	    _PATH_SSH_SYSTEM_HOSTFILE,
 	    options.ignore_user_known_hosts ? NULL : user_hostfile);
 	free(user_hostfile);
 
 	/* backward compat if no key has been found. */
-	char* user_hostfile2 = path_get_user_config_file(PATH_CONFIG_FILE_SSH_USER_HOSTFILE2);
+	char* user_hostfile2 = path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE2);
 	if (host_status == HOST_NEW) {
 		host_status = check_key_in_hostfiles(pw, key, lookup,
 		    _PATH_SSH_SYSTEM_HOSTFILE2,
