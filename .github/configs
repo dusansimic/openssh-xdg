@@ -145,9 +145,22 @@ case "$config" in
 esac
 
 case "${TARGET_HOST}" in
+    aix*)
+	# These are slow real or virtual machines so skip the slowest tests
+	# (which tend to be thw ones that transfer lots of data) so that the
+	# test run does not time out.
+	# The agent-restrict test fails due to some quoting issue when run
+	# with sh or ksh so specify bash for now.
+	TEST_TARGET="t-exec TEST_SHELL=bash"
+	SKIP_LTESTS="rekey sftp"
+	;;
     dfly58*|dfly60*)
 	# scp 3-way connection hangs on these so skip until sorted.
 	SKIP_LTESTS=scp3
+	;;
+    fbsd6)
+	# Native linker is not great with PIC so OpenSSL is built w/out.
+	CONFIGFLAGS="${CONFIGFLAGS} --disable-security-key"
 	;;
     hurd)
 	SKIP_LTESTS="forwarding multiplex proxy-connect hostkey-agent agent-ptrace"

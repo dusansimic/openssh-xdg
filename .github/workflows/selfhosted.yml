@@ -16,6 +16,7 @@ jobs:
       # default config.  "os" corresponds to a label associated with the worker.
       matrix:
         os:
+          - aix51
           - ARM64
           - alpine
           - bbone
@@ -24,7 +25,6 @@ jobs:
           - dfly48
           - dfly58
           - dfly60
-          - fbsd6
           - fbsd10
           - fbsd12
           - fbsd13
@@ -57,7 +57,6 @@ jobs:
           - { os: dfly48, configs: pam }
           - { os: dfly58, configs: pam }
           - { os: dfly60, configs: pam }
-          - { os: fbsd6,  configs: pam }
           - { os: fbsd10, configs: pam }
           - { os: fbsd12, configs: pam }
           - { os: fbsd13, configs: pam }
@@ -91,7 +90,7 @@ jobs:
       run: vmrun make
     - name: make tests
       run: vmrun ./.github/run_test.sh ${{ matrix.configs }}
-      timeout-minutes: 300
+      timeout-minutes: 600
     - name: save logs
       if: failure()
       uses: actions/upload-artifact@v2
