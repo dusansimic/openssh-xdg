@@ -3278,7 +3278,9 @@ if test "x$xdg_dirs" = "xyes"; then
                 ], [
                         AC_MSG_ERROR([missing xdg/BaseDirectory.h])
                 ])
-        AC_CHECK_LIB([xdg-basedir], [xdgInitHandle], [LIBS="$LIBS -lxdg-basedir "])
+        AC_CHECK_LIB([xdg-basedir], [xdgInitHandle],
+                     [LIBS="$LIBS -lxdg-basedir "],
+                     [ AC_MSG_ERROR([missing libxdg-basedir])])
 fi
 
 saved_LIBS="$LIBS"
