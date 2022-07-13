@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.16 2022/04/08 04:40:40 djm Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.18 2022/05/25 06:03:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *

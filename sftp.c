@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.214 2022/03/31 03:07:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.218 2022/06/28 06:09:14 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -601,18 +601,45 @@ parse_no_flags(const char *cmd, char **argv, int argc)
 	return optind;
 }
 
+static char *
+escape_glob(const char *s)
+{
+	size_t i, o, len;
+	char *ret;
+
+	len = strlen(s);
+	ret = xcalloc(2, len + 1);
+	for (i = o = 0; i < len; i++) {
+		if (strchr("[]?*\\", s[i]) != NULL)
+			ret[o++] = '\\';
+		ret[o++] = s[i];
+	}
+	ret[o++] = '\0';
+	return ret;
+}
+
+static char *
+make_absolute_pwd_glob(const char *p, const char *pwd)
+{
+	char *ret, *escpwd;
+
+	escpwd = escape_glob(pwd);
+	if (p == NULL)
+		return escpwd;
+	ret = make_absolute(xstrdup(p), escpwd);
+	free(escpwd);
+	return ret;
+}
+
 static int
 process_get(struct sftp_conn *conn, const char *src, const char *dst,
     const char *pwd, int pflag, int rflag, int resume, int fflag)
 {
-	char *abs_src = NULL;
-	char *abs_dst = NULL;
+	char *filename, *abs_src = NULL, *abs_dst = NULL, *tmp = NULL;
 	glob_t g;
-	char *filename, *tmp=NULL;
 	int i, r, err = 0;
 
-	abs_src = xstrdup(src);
-	abs_src = make_absolute(abs_src, pwd);
+	abs_src = make_absolute_pwd_glob(src, pwd);
 	memset(&g, 0, sizeof(g));
 
 	debug3("Looking up %s", abs_src);
@@ -670,12 +697,12 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 		if (globpath_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
 			    pflag || global_pflag, 1, resume,
-			    fflag || global_fflag, 0) == -1)
+			    fflag || global_fflag, 0, 0) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
 			    pflag || global_pflag, resume,
-			    fflag || global_fflag) == -1)
+			    fflag || global_fflag, 0) == -1)
 				err = -1;
 		}
 		free(abs_dst);
@@ -764,12 +791,12 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 		if (globpath_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (upload_dir(conn, g.gl_pathv[i], abs_dst,
 			    pflag || global_pflag, 1, resume,
-			    fflag || global_fflag, 0) == -1)
+			    fflag || global_fflag, 0, 0) == -1)
 				err = -1;
 		} else {
 			if (do_upload(conn, g.gl_pathv[i], abs_dst,
 			    pflag || global_pflag, resume,
-			    fflag || global_fflag) == -1)
+			    fflag || global_fflag, 0) == -1)
 				err = -1;
 		}
 	}
@@ -1565,7 +1592,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		err = (sflag ? do_symlink : do_hardlink)(conn, path1, path2);
 		break;
 	case I_RM:
-		path1 = make_absolute(path1, *pwd);
+		path1 = make_absolute_pwd_glob(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!quiet)
@@ -1626,7 +1653,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		if (!path_absolute(path1))
 			tmp = *pwd;
 
-		path1 = make_absolute(path1, *pwd);
+		path1 = make_absolute_pwd_glob(path1, *pwd);
 		err = do_globbed_ls(conn, path1, tmp, lflag);
 		break;
 	case I_DF:
@@ -1666,7 +1693,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		printf("Local umask: %03lo\n", n_arg);
 		break;
 	case I_CHMOD:
-		path1 = make_absolute(path1, *pwd);
+		path1 = make_absolute_pwd_glob(path1, *pwd);
 		attrib_clear(&a);
 		a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 		a.perm = n_arg;
@@ -1683,7 +1710,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		break;
 	case I_CHOWN:
 	case I_CHGRP:
-		path1 = make_absolute(path1, *pwd);
+		path1 = make_absolute_pwd_glob(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!(aa = (hflag ? do_lstat : do_stat)(conn,
@@ -1958,7 +1985,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {
-		tmp = make_absolute(tmp, remote_path);
+		tmp = make_absolute_pwd_glob(tmp, remote_path);
 		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
 	} else
 		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
@@ -2349,7 +2376,7 @@ usage(void)
 
 	fprintf(stderr,
 	    "usage: %s [-46AaCfNpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
-	    "          [-D sftp_server_path] [-F ssh_config] [-i identity_file]\n"
+	    "          [-D sftp_server_command] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
 	    "          destination\n",
@@ -2360,8 +2387,8 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	int in, out, ch, err, tmp, port = -1, noisy = 0;
-	char *host = NULL, *user, *cp, *file2 = NULL;
+	int r, in, out, ch, err, tmp, port = -1, noisy = 0;
+	char *host = NULL, *user, *cp, **cpp, *file2 = NULL;
 	int debug_level = 0;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
@@ -2559,10 +2586,12 @@ main(int argc, char **argv)
 
 		connect_to_server(ssh_program, args.list, &in, &out);
 	} else {
-		args.list = NULL;
-		addargs(&args, "sftp-server");
-
-		connect_to_server(sftp_direct, args.list, &in, &out);
+		if ((r = argv_split(sftp_direct, &tmp, &cpp, 1)) != 0)
+			fatal_r(r, "Parse -D arguments");
+		if (cpp[0] == 0)
+			fatal("No sftp server specified via -D");
+		connect_to_server(cpp[0], cpp, &in, &out);
+		argv_free(cpp, tmp);
 	}
 	freeargs(&args);
 

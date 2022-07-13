@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.417 2022/04/20 04:19:11 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.419 2022/05/05 00:56:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -304,6 +304,8 @@ static void
 channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock, int is_tty)
 {
+	int val;
+
 	if (rfd != -1)
 		fcntl(rfd, F_SETFD, FD_CLOEXEC);
 	if (wfd != -1 && wfd != rfd)
@@ -333,15 +335,18 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 		 * restore their blocking state on exit to avoid interfering
 		 * with other programs that follow.
 		 */
-		if (rfd != -1 && !isatty(rfd) && fcntl(rfd, F_GETFL) == 0) {
+		if (rfd != -1 && !isatty(rfd) &&
+		    (val = fcntl(rfd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
 			c->restore_block |= CHANNEL_RESTORE_RFD;
 			set_nonblock(rfd);
 		}
-		if (wfd != -1 && !isatty(wfd) && fcntl(wfd, F_GETFL) == 0) {
+		if (wfd != -1 && !isatty(wfd) &&
+		    (val = fcntl(wfd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
 			c->restore_block |= CHANNEL_RESTORE_WFD;
 			set_nonblock(wfd);
 		}
-		if (efd != -1 && !isatty(efd) && fcntl(efd, F_GETFL) == 0) {
+		if (efd != -1 && !isatty(efd) &&
+		    (val = fcntl(efd, F_GETFL)) != -1 && !(val & O_NONBLOCK)) {
 			c->restore_block |= CHANNEL_RESTORE_EFD;
 			set_nonblock(efd);
 		}
@@ -356,12 +361,12 @@ channel_register_fds(struct ssh *ssh, Channel *c, int rfd, int wfd, int efd,
 }
 
 /*
- * Allocate a new channel object and set its type and socket. This will cause
- * remote_name to be freed.
+ * Allocate a new channel object and set its type and socket.
  */
 Channel *
 channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
-    u_int window, u_int maxpack, int extusage, char *remote_name, int nonblock)
+    u_int window, u_int maxpack, int extusage, const char *remote_name,
+    int nonblock)
 {
 	struct ssh_channels *sc = ssh->chanctxt;
 	u_int i, found;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.450 2022/03/18 02:32:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.454 2022/06/03 03:17:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -127,6 +127,7 @@ static u_int64_t cert_valid_to = ~0ULL;
 #define CERTOPT_PTY				(1<<3)
 #define CERTOPT_USER_RC				(1<<4)
 #define CERTOPT_NO_REQUIRE_USER_PRESENCE	(1<<5)
+#define CERTOPT_REQUIRE_VERIFY			(1<<6)
 #define CERTOPT_DEFAULT	(CERTOPT_X_FWD|CERTOPT_AGENT_FWD| \
 			 CERTOPT_PORT_FWD|CERTOPT_PTY|CERTOPT_USER_RC)
 static u_int32_t certflags_flags = CERTOPT_DEFAULT;
@@ -1045,7 +1046,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 	} key_types[] = {
 #ifdef WITH_OPENSSL
 		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
-		{ "dsa", "DSA", _PATH_HOST_DSA_KEY_FILE },
 #ifdef OPENSSL_HAS_ECC
 		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
 #endif /* OPENSSL_HAS_ECC */
@@ -1673,6 +1673,8 @@ finalise_cert_exts(void)
 		cert_ext_add("force-command", certflags_command, 1);
 	if (certflags_src_addr != NULL)
 		cert_ext_add("source-address", certflags_src_addr, 1);
+	if ((certflags_flags & CERTOPT_REQUIRE_VERIFY) != 0)
+		cert_ext_add("verify-required", NULL, 1);
 	/* extensions */
 	if ((certflags_flags & CERTOPT_X_FWD) != 0)
 		cert_ext_add("permit-X11-forwarding", NULL, 0);
@@ -1994,6 +1996,10 @@ add_cert_option(char *opt)
 		certflags_flags &= ~CERTOPT_NO_REQUIRE_USER_PRESENCE;
 	else if (strcasecmp(opt, "no-touch-required") == 0)
 		certflags_flags |= CERTOPT_NO_REQUIRE_USER_PRESENCE;
+	else if (strcasecmp(opt, "no-verify-required") == 0)
+		certflags_flags &= ~CERTOPT_REQUIRE_VERIFY;
+	else if (strcasecmp(opt, "verify-required") == 0)
+		certflags_flags |= CERTOPT_REQUIRE_VERIFY;
 	else if (strncasecmp(opt, "force-command=", 14) == 0) {
 		val = opt + 14;
 		if (*val == '\0')
@@ -2052,6 +2058,9 @@ show_options(struct sshbuf *optbuf, int in_critical)
 				fatal_fr(r, "parse critical");
 			printf(" %s\n", arg);
 			free(arg);
+		} else if (in_critical &&
+		    strcmp(name, "verify-required") == 0) {
+			printf("\n");
 		} else if (sshbuf_len(option) > 0) {
 			hex = sshbuf_dtob16(option);
 			printf(" UNKNOWN OPTION: %s (len %zu)\n",
@@ -2463,7 +2472,8 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 	char *privpath = xstrdup(keypath);
 	static const char * const suffixes[] = { "-cert.pub", ".pub", NULL };
 	struct sshkey *ret = NULL, *privkey = NULL;
-	int r;
+	int r, waspub = 0;
+	struct stat st;
 
 	/*
 	 * If passed a public key filename, then try to locate the corresponding
@@ -2478,11 +2488,17 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 		privpath[plen - slen] = '\0';
 		debug_f("%s looks like a public key, using private key "
 		    "path %s instead", keypath, privpath);
+		waspub = 1;
 	}
-	if ((privkey = load_identity(privpath, NULL)) == NULL) {
-		error("Couldn't load identity %s", keypath);
-		goto done;
-	}
+	if (waspub && stat(privpath, &st) != 0 && errno == ENOENT)
+		fatal("No private key found for public key \"%s\"", keypath);
+	if ((r = sshkey_load_private(privpath, "", &privkey, NULL)) != 0 &&
+	    (r != SSH_ERR_KEY_WRONG_PASSPHRASE)) {
+		debug_fr(r, "load private key \"%s\"", privpath);
+		fatal("No private key found for \"%s\"", privpath);
+	} else if (privkey == NULL)
+		privkey = load_identity(privpath, NULL);
+
 	if (!sshkey_equal_public(pubkey, privkey)) {
 		error("Public key %s doesn't match private %s",
 		    keypath, privpath);
@@ -2648,8 +2664,8 @@ sig_process_opts(char * const *opts, size_t nopts, char **hashalgp,
 
 
 static int
-sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv,
-    char * const *opts, size_t nopts)
+sig_sign(const char *keypath, const char *sig_namespace, int require_agent,
+    int argc, char **argv, char * const *opts, size_t nopts)
 {
 	int i, fd = -1, r, ret = -1;
 	int agent_fd = -1;
@@ -2673,13 +2689,18 @@ sig_sign(const char *keypath, const char *sig_namespace, int argc, char **argv,
 		goto done;
 	}
 
-	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0)
+	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {
+		if (require_agent)
+			fatal("Couldn't get agent socket");
 		debug_r(r, "Couldn't get agent socket");
-	else {
+	} else {
 		if ((r = ssh_agent_has_key(agent_fd, pubkey)) == 0)
 			signer = agent_signer;
-		else
+		else {
+			if (require_agent)
+				fatal("Couldn't find key in agent");
 			debug_r(r, "Couldn't find key in agent");
+		}
 	}
 
 	if (signer == NULL) {
@@ -3537,7 +3558,7 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sig_sign(identity_file, cert_principals,
-			    argc, argv, opts, nopts);
+			    prefer_agent, argc, argv, opts, nopts);
 		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
 			/* NB. cert_principals is actually namespace, via -n */
 			if (cert_principals == NULL ||
