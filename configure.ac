@@ -129,6 +129,13 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <linux/prctl.h>
 ])
 
+xdg_dirs=no
+AC_ARG_WITH([xdg_dirs],
+  [ --with-xdg-dirs     use the xdg specification for storing config files ],
+  [  if test "x$withval" = "xyes" ; then
+        xdg_dirs=yes
+  fi ])
+
 openssl=yes
 openssl_bin=openssl
 AC_ARG_WITH([openssl],
@@ -771,7 +778,7 @@ int main(void) { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
-	# proc_pidinfo()-based closefrom() replacement.
+  	# proc_pidinfo()-based closefrom() replacement.
 	AC_CHECK_HEADERS([libproc.h])
 	AC_CHECK_FUNCS([proc_pidinfo])
 	# poll(2) is broken for character-special devices (at least).
@@ -3266,6 +3273,24 @@ AC_CHECK_FUNCS([ \
 	arc4random_stir \
 	arc4random_uniform \
 ])
+
+if test "x$xdg_dirs" = "xyes"; then
+        AC_MSG_CHECKING([whether to use XDG dirs])
+        AC_CHECK_HEADER([basedir.h], [],
+                [
+                        AC_DEFINE([USE_XDG_DIRS], [1],
+                            [Use XDG directories])
+                ], [
+                        AC_DEFINE([USE_XDG_DIRS], [],
+                            [Do not use XDG directories])
+                ], [
+                        AC_MSG_ERROR([missing xdg/BaseDirectory.h])
+                ])
+        AC_CHECK_LIB([xdg-basedir], [xdgInitHandle],
+                     [LIBS="$LIBS -lxdg-basedir "],
+                     [ AC_MSG_ERROR([missing libxdg-basedir])])
+fi
+
 ### Configure cryptographic random number support
 
 # Check whether OpenSSL seeds itself
@@ -5641,6 +5666,7 @@ echo "              Random number source: $RAND_MSG"
 echo "             Privsep sandbox style: $SANDBOX_STYLE"
 echo "                   PKCS#11 support: $enable_pkcs11"
 echo "                  U2F/FIDO support: $enable_sk"
+echo "           XDG directories support: $xdg_dirs"
 
 echo ""
 

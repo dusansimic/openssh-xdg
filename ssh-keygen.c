@@ -262,46 +262,47 @@ ask_filename(struct passwd *pw, const char *prompt)
 	char buf[1024];
 	char *name = NULL;
 
-	if (key_type_name == NULL)
-		name = _PATH_SSH_CLIENT_ID_RSA;
-	else {
+	if (key_type_name == NULL) {
+    name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_RSA);
+  }	else {
 		switch (sshkey_type_from_name(key_type_name)) {
 		case KEY_DSA_CERT:
 		case KEY_DSA:
-			name = _PATH_SSH_CLIENT_ID_DSA;
+      name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_DSA);
 			break;
 #ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
-			name = _PATH_SSH_CLIENT_ID_ECDSA;
+      name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA);
 			break;
 		case KEY_ECDSA_SK_CERT:
 		case KEY_ECDSA_SK:
-			name = _PATH_SSH_CLIENT_ID_ECDSA_SK;
+			name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ECDSA_SK);
 			break;
 #endif
 		case KEY_RSA_CERT:
 		case KEY_RSA:
-			name = _PATH_SSH_CLIENT_ID_RSA;
+      name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_RSA);
 			break;
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:
-			name = _PATH_SSH_CLIENT_ID_ED25519;
+			name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519);
 			break;
 		case KEY_ED25519_SK:
 		case KEY_ED25519_SK_CERT:
-			name = _PATH_SSH_CLIENT_ID_ED25519_SK;
+			name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_ED25519_SK);
 			break;
 		case KEY_XMSS:
 		case KEY_XMSS_CERT:
-			name = _PATH_SSH_CLIENT_ID_XMSS;
+			name = path_get_user_config_file(CONFIG_FILE_SSH_CLIENT_ID_XMSS);
 			break;
 		default:
 			fatal("bad key type");
 		}
 	}
 	snprintf(identity_file, sizeof(identity_file),
-	    "%s/%s", pw->pw_dir, name);
+	    "%s", name);
+  free(name);
 	printf("%s (%s): ", prompt, identity_file);
 	fflush(stdout);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
@@ -1302,7 +1303,7 @@ do_known_hosts(struct passwd *pw, const char *name, int find_host,
 	struct stat sb;
 
 	if (!have_identity) {
-		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
+		cp = path_get_user_config_file(CONFIG_FILE_SSH_USER_HOSTFILE);
 		if (strlcpy(identity_file, cp, sizeof(identity_file)) >=
 		    sizeof(identity_file))
 			fatal("Specified known hosts path too long");
