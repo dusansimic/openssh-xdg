@@ -131,7 +131,7 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 
 xdg_dirs=no
 AC_ARG_WITH([xdg_dirs],
-  [ --with-xdg-dirs     use the xdg specification for storing config files ],
+  [  --with-xdg-dirs         use the xdg specification for storing config files ],
   [  if test "x$withval" = "xyes" ; then
         xdg_dirs=yes
   fi ])
@@ -2749,6 +2749,21 @@ AC_ARG_WITH([ssl-engine],
 	]
 )
 
+if test "x$xdg_dirs" = "xyes"; then
+		AC_MSG_CHECKING([whether to use XDG dirs])
+		AC_CHECK_HEADER(
+			[basedir.h], ,
+			[AC_MSG_ERROR([XDG Base Directory spec support requires basedir.h])]
+		)
+		AC_CHECK_LIB(
+			[xdg-basedir],
+			[xdgInitHandle],
+			[LIBS="$LIBS -lxdg-basedir"],
+			[AC_MSG_ERROR([missing libxdg-basedir])]
+		)
+		echo "Here are libs $LIBS"
+fi
+
 nocrypto_saved_LIBS="$LIBS"
 if test "x$openssl" = "xyes" ; then
 	LIBS="-lcrypto $LIBS"
@@ -3273,23 +3288,6 @@ AC_CHECK_FUNCS([ \
 	arc4random_stir \
 	arc4random_uniform \
 ])
-
-if test "x$xdg_dirs" = "xyes"; then
-        AC_MSG_CHECKING([whether to use XDG dirs])
-        AC_CHECK_HEADER([basedir.h], [],
-                [
-                        AC_DEFINE([USE_XDG_DIRS], [1],
-                            [Use XDG directories])
-                ], [
-                        AC_DEFINE([USE_XDG_DIRS], [],
-                            [Do not use XDG directories])
-                ], [
-                        AC_MSG_ERROR([missing xdg/BaseDirectory.h])
-                ])
-        AC_CHECK_LIB([xdg-basedir], [xdgInitHandle],
-                     [LIBS="$LIBS -lxdg-basedir "],
-                     [ AC_MSG_ERROR([missing libxdg-basedir])])
-fi
 
 ### Configure cryptographic random number support
 

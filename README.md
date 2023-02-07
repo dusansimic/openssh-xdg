@@ -79,6 +79,7 @@ Flag | Meaning
 ``--with-libedit`` | Enable [libedit](https://www.thrysoee.dk/editline/) support for sftp.
 ``--with-kerberos5`` | Enable Kerberos/GSSAPI support. Both [Heimdal](https://www.h5l.org/) and [MIT](https://web.mit.edu/kerberos/) Kerberos implementations are supported.
 ``--with-selinux`` | Enable [SELinux](https://en.wikipedia.org/wiki/Security-Enhanced_Linux) support.
+``--with-xdg-dirs`` | Enable [XDG Base Directory specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) support.
 
 ## Development
 
