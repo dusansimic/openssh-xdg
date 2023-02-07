@@ -2,8 +2,7 @@
 
 ## This is a modified version of openssh to make it compatible with the xdg directory standard
 
-#### Testing is appreciated 
-### ⚠️Currently requires the `--with-xdg-dirs` flag when running `./configure` to correctly link until I finish adding the ability to enable/disable xdg in the code.⚠️
+This fork is based on fantastic work from [casually-blue](https://github.com/casually-blue/openssh-portable-xdg). The goal is to bring it up to date and track upstream release schedule as much as possible. The goal of this project is not to replace OpenSSH, rather serve as a patched version for those who would like to use OpenSSH tools with XDG Base Directory specification support. Testing and feedback is very welcome.
 
 [![C/C++ CI](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/openssh/openssh-portable/actions/workflows/c-cpp.yml)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/openssh.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:openssh)
@@ -86,5 +85,7 @@ Flag | Meaning
 Portable OpenSSH development is discussed on the [openssh-unix-dev mailing list](https://lists.mindrot.org/mailman/listinfo/openssh-unix-dev) ([archive mirror](https://marc.info/?l=openssh-unix-dev)). Bugs and feature requests are tracked on our [Bugzilla](https://bugzilla.mindrot.org/).
 
 ## Reporting bugs
+
+All bugs related to XDG patches report to the GitHub bug tracker. Everything else should be reported to upstream.
 
 _Non-security_ bugs may be reported to the developers via [Bugzilla](https://bugzilla.mindrot.org/) or via the mailing list above. Security bugs should be reported to [openssh@openssh.com](mailto:openssh.openssh.com).
